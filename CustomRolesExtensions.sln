@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31612.314
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomRolesExtensions", "CustomRolesExtensions\CustomRolesExtensions.csproj", "{87DE5B1E-1CDC-4958-BA31-6561D7107533}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87DE5B1E-1CDC-4958-BA31-6561D7107533}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87DE5B1E-1CDC-4958-BA31-6561D7107533}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87DE5B1E-1CDC-4958-BA31-6561D7107533}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87DE5B1E-1CDC-4958-BA31-6561D7107533}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {31B4038D-4B93-499B-AFD7-36CFA0A2683D}
+	EndGlobalSection
+EndGlobal

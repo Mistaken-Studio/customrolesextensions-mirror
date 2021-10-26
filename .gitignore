@@ -1,0 +1,10 @@
+﻿################################################################################
+# Ten plik .gitignore został utworzony automatycznie przez Microsoft(R) Visual Studio.
+################################################################################
+
+/CustomRolesExtensions/obj/Debug
+/.vs/CustomRolesExtensions/v17
+/CustomRolesExtensions/bin/Debug
+/packages/StyleCop.Analyzers.1.1.118
+/.vs
+/CustomRolesExtensions/obj/Release
