@@ -8,7 +8,7 @@ using System;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 
-namespace Mistaken.CustomRolesExtensions
+namespace Mistaken.API.CustomRoles
 {
     /// <inheritdoc/>
     public class PluginHandler : Plugin<Config>

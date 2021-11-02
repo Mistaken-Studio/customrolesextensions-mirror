@@ -8,8 +8,8 @@
     <ProjectGuid>{87DE5B1E-1CDC-4958-BA31-6561D7107533}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Mistaken.CustomRolesExtensions</RootNamespace>
-    <AssemblyName>Mistaken.CustomRolesExtensions</AssemblyName>
+    <RootNamespace>Mistaken.API.CustomRoles</RootNamespace>
+    <AssemblyName>Mistaken.API.CustomRoles</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -23,7 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
-    <DocumentationFile>bin\Debug\Mistaken.CustomRolesExtensions.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\Mistaken.API.CustomRoles.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

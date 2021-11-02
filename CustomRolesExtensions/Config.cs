@@ -7,7 +7,7 @@
 using System.ComponentModel;
 using Mistaken.Updater.Config;
 
-namespace Mistaken.CustomRolesExtensions
+namespace Mistaken.API.CustomRoles
 {
     /// <inheritdoc/>
     public class Config : IAutoUpdatableConfig
