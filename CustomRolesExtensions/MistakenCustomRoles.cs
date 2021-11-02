@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace Mistaken.CustomRolesExtensions
+namespace Mistaken.API.CustomRoles
 {
     /// <summary>
     /// Enum containing list of all custom roles made by Mistaken Devs.

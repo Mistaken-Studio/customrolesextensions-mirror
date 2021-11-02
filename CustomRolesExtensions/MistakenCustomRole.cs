@@ -7,7 +7,7 @@
 using Exiled.API.Enums;
 using Exiled.CustomRoles.API.Features;
 
-namespace Mistaken.CustomRolesExtensions
+namespace Mistaken.API.CustomRoles
 {
     /// <inheritdoc/>
     public abstract class MistakenCustomRole : CustomRole, IMistakenCustomRole

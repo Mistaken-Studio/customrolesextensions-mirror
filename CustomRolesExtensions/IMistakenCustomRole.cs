@@ -6,7 +6,7 @@
 
 using Exiled.CustomRoles.API.Features;
 
-namespace Mistaken.CustomRolesExtensions
+namespace Mistaken.API.CustomRoles
 {
     /// <summary>
     /// Interace used to mark Mistaken's Custom Roles.

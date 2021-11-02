@@ -18,7 +18,7 @@ using InventorySystem.Items.ThrowableProjectiles;
 using Mirror;
 using UnityEngine;
 
-namespace Mistaken.CustomRolesExtensions
+namespace Mistaken.API.CustomRoles
 {
     /// <summary>
     /// Custom Ranks Extensions.
