@@ -65,6 +65,7 @@ namespace Mistaken.API.CustomRoles
             base.RoleAdded(player);
             if (this.BuiltInPermissions != KeycardPermissions.None)
                 player.SetSessionVariable(SessionVarType.BUILTIN_DOOR_ACCESS, this.BuiltInPermissions);
+            Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", this.Name);
         }
 
         /// <inheritdoc/>
@@ -73,6 +74,7 @@ namespace Mistaken.API.CustomRoles
             base.RoleRemoved(player);
             if (this.BuiltInPermissions != KeycardPermissions.None)
                 player.RemoveSessionVariable(SessionVarType.BUILTIN_DOOR_ACCESS);
+            Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", null);
         }
     }
 }
