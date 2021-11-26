@@ -4,10 +4,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Features;
+using Exiled.CustomRoles.API;
 using Exiled.CustomRoles.API.Features;
 using Mistaken.API.Extensions;
+using Mistaken.RoundLogger;
 
 namespace Mistaken.API.CustomRoles
 {
@@ -47,11 +51,6 @@ namespace Mistaken.API.CustomRoles
         /// <inheritdoc/>
         public abstract MistakenCustomRoles CustomRole { get; }
 
-        /// <summary>
-        /// Gets Keycard permissins for bulitin door permission session var.
-        /// </summary>
-        public virtual KeycardPermissions BuiltInPermissions { get; } = KeycardPermissions.None;
-
         /// <inheritdoc/>
         public override uint Id
         {
@@ -60,21 +59,115 @@ namespace Mistaken.API.CustomRoles
         }
 
         /// <inheritdoc/>
+        public override void AddRole(Player player)
+        {
+            if (this.SetLatestUnitName)
+            {
+                var prevRole = player.Role;
+                var old = Respawning.RespawnManager.CurrentSequence();
+                Respawning.RespawnManager.Singleton._curSequence = Respawning.RespawnManager.RespawnSequencePhase.SpawningSelectedTeam;
+                player.Role = this.Role == RoleType.None ? RoleType.ClassD : this.Role;
+                player.ReferenceHub.characterClassManager.NetworkCurSpawnableTeamType = 2;
+                player.UnitName = Respawning.RespawnManager.Singleton.NamingManager.AllUnitNames.Last().UnitName;
+                Respawning.RespawnManager.Singleton._curSequence = old;
+                if (this.Role == RoleType.None)
+                    player.Role = prevRole;
+            }
+
+            base.AddRole(player);
+        }
+
+        /// <summary>
+        /// Gets Keycard permissins for bulitin door permission session var.
+        /// </summary>
+        protected virtual KeycardPermissions BuiltInPermissions { get; } = KeycardPermissions.None;
+
+        /// <summary>
+        /// Gets a value indicating whether role grants infinite ammo.
+        /// </summary>
+        protected virtual bool InfiniteAmmo { get; } = false;
+
+        /// <summary>
+        /// Gets name used to for GUI.
+        /// </summary>
+        protected virtual string DisplayName { get; }
+
+        /// <summary>
+        /// Gets ammo set when role is added.
+        /// </summary>
+        protected virtual Dictionary<ItemType, ushort> Ammo { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether after adding role latest unit.
+        /// </summary>
+        protected virtual bool SetLatestUnitName { get; } = false;
+
+        /// <inheritdoc/>
         protected override void RoleAdded(Player player)
         {
             base.RoleAdded(player);
+            player.InfoArea = ~PlayerInfoArea.Role;
             if (this.BuiltInPermissions != KeycardPermissions.None)
                 player.SetSessionVariable(SessionVarType.BUILTIN_DOOR_ACCESS, this.BuiltInPermissions);
-            Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", this.Name);
+            if (this.InfiniteAmmo)
+            {
+                player.SetSessionVariable(SessionVarType.INFINITE_AMMO, true);
+                Diagnostics.Module.CallSafeDelayed(
+                2f,
+                () =>
+                {
+                    player.Ammo[ItemType.Ammo12gauge] = 1;
+                    player.Ammo[ItemType.Ammo44cal] = 1;
+                    player.Ammo[ItemType.Ammo556x45] = 1;
+                    player.Ammo[ItemType.Ammo762x39] = 1;
+                    player.Ammo[ItemType.Ammo9x19] = 1;
+                },
+                "AddAmmo");
+            }
+            else
+            {
+                Diagnostics.Module.CallSafeDelayed(
+                    2f,
+                    () =>
+                    {
+                        if (this.Ammo != null)
+                        {
+                            foreach (var item in player.Ammo.Keys.ToArray())
+                                player.Ammo[item] = 0;
+
+                            foreach (var item in this.Ammo)
+                                player.Ammo[item.Key] = item.Value;
+                        }
+                    },
+                    "AddAmmo");
+            }
+
+            if (!string.IsNullOrWhiteSpace(this.DisplayName))
+            {
+                Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", this.DisplayName);
+                player.SetGUI($"custom-role-{this.Name}", GUI.PseudoGUIPosition.BOTTOM, $"<color=yellow>Grasz</color> jako {this.DisplayName}");
+                player.SetGUI($"custom-role-{this.Name}-descripton", GUI.PseudoGUIPosition.MIDDLE, this.Description, 15f);
+            }
+
+            RLogger.Log("CUSTOM CLASSES", this.Name, $"Spawned {player.PlayerToString()} as {this.Name}");
         }
 
         /// <inheritdoc/>
         protected override void RoleRemoved(Player player)
         {
             base.RoleRemoved(player);
+
+            if (!player.GetCustomRoles().Any())
+                player.InfoArea |= PlayerInfoArea.Role;
+
             if (this.BuiltInPermissions != KeycardPermissions.None)
                 player.RemoveSessionVariable(SessionVarType.BUILTIN_DOOR_ACCESS);
+            if (this.InfiniteAmmo)
+                player.RemoveSessionVariable(SessionVarType.INFINITE_AMMO);
+
             Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", null);
+            player.SetGUI($"custom-role-{this.Name}", GUI.PseudoGUIPosition.BOTTOM, null);
+            RLogger.Log("CUSTOM CLASSES", this.Name, $"{player.PlayerToString()} is no longer {this.Name}");
         }
     }
 }
