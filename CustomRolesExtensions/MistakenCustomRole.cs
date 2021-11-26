@@ -51,26 +51,6 @@ namespace Mistaken.API.CustomRoles
         /// <inheritdoc/>
         public abstract MistakenCustomRoles CustomRole { get; }
 
-        /// <summary>
-        /// Gets Keycard permissins for bulitin door permission session var.
-        /// </summary>
-        public virtual KeycardPermissions BuiltInPermissions { get; } = KeycardPermissions.None;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual string DisplayName { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual Dictionary<ItemType, ushort> Ammo { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual bool SetLatestUnitName { get; } = false;
-
         /// <inheritdoc/>
         public override uint Id
         {
@@ -97,6 +77,31 @@ namespace Mistaken.API.CustomRoles
             base.AddRole(player);
         }
 
+        /// <summary>
+        /// Gets Keycard permissins for bulitin door permission session var.
+        /// </summary>
+        protected virtual KeycardPermissions BuiltInPermissions { get; } = KeycardPermissions.None;
+
+        /// <summary>
+        /// Gets a value indicating whether role grants infinite ammo.
+        /// </summary>
+        protected virtual bool InfiniteAmmo { get; } = false;
+
+        /// <summary>
+        /// Gets name used to for GUI.
+        /// </summary>
+        protected virtual string DisplayName { get; }
+
+        /// <summary>
+        /// Gets ammo set when role is added.
+        /// </summary>
+        protected virtual Dictionary<ItemType, ushort> Ammo { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether after adding role latest unit.
+        /// </summary>
+        protected virtual bool SetLatestUnitName { get; } = false;
+
         /// <inheritdoc/>
         protected override void RoleAdded(Player player)
         {
@@ -104,21 +109,44 @@ namespace Mistaken.API.CustomRoles
             player.InfoArea = ~PlayerInfoArea.Role;
             if (this.BuiltInPermissions != KeycardPermissions.None)
                 player.SetSessionVariable(SessionVarType.BUILTIN_DOOR_ACCESS, this.BuiltInPermissions);
-
-            if (this.Ammo != null)
+            if (this.InfiniteAmmo)
             {
-                foreach (var item in player.Ammo.Keys)
-                    player.Ammo[item] = 0;
+                player.SetSessionVariable(SessionVarType.INFINITE_AMMO, true);
+                Diagnostics.Module.CallSafeDelayed(
+                2f,
+                () =>
+                {
+                    player.Ammo[ItemType.Ammo12gauge] = 1;
+                    player.Ammo[ItemType.Ammo44cal] = 1;
+                    player.Ammo[ItemType.Ammo556x45] = 1;
+                    player.Ammo[ItemType.Ammo762x39] = 1;
+                    player.Ammo[ItemType.Ammo9x19] = 1;
+                },
+                "AddAmmo");
+            }
+            else
+            {
+                Diagnostics.Module.CallSafeDelayed(
+                    2f,
+                    () =>
+                    {
+                        if (this.Ammo != null)
+                        {
+                            foreach (var item in player.Ammo.Keys.ToArray())
+                                player.Ammo[item] = 0;
 
-                foreach (var item in this.Ammo)
-                    player.Ammo[item.Key] = item.Value;
+                            foreach (var item in this.Ammo)
+                                player.Ammo[item.Key] = item.Value;
+                        }
+                    },
+                    "AddAmmo");
             }
 
             if (!string.IsNullOrWhiteSpace(this.DisplayName))
             {
                 Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", this.DisplayName);
                 player.SetGUI($"custom-role-{this.Name}", GUI.PseudoGUIPosition.BOTTOM, $"<color=yellow>Grasz</color> jako {this.DisplayName}");
-                player.SetGUI($"custom-role-{this.Name}-descripton", GUI.PseudoGUIPosition.MIDDLE, this.Description);
+                player.SetGUI($"custom-role-{this.Name}-descripton", GUI.PseudoGUIPosition.MIDDLE, this.Description, 15f);
             }
 
             RLogger.Log("CUSTOM CLASSES", this.Name, $"Spawned {player.PlayerToString()} as {this.Name}");
@@ -134,6 +162,8 @@ namespace Mistaken.API.CustomRoles
 
             if (this.BuiltInPermissions != KeycardPermissions.None)
                 player.RemoveSessionVariable(SessionVarType.BUILTIN_DOOR_ACCESS);
+            if (this.InfiniteAmmo)
+                player.RemoveSessionVariable(SessionVarType.INFINITE_AMMO);
 
             Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", null);
             player.SetGUI($"custom-role-{this.Name}", GUI.PseudoGUIPosition.BOTTOM, null);
