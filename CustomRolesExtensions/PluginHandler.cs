@@ -31,7 +31,7 @@ namespace Mistaken.API.CustomRoles
         public override PluginPriority Priority => PluginPriority.Default;
 
         /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(4, 1, 2);
+        public override Version RequiredExiledVersion => new Version(5, 0, 0);
 
         /// <inheritdoc/>
         public override void OnEnabled()
@@ -54,34 +54,27 @@ namespace Mistaken.API.CustomRoles
 
         private void Register()
         {
-            foreach (var type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass))
-            {
-                if (type.GetInterfaces().Any(x => x == typeof(IMistakenCustomRole)))
-                {
-                    var role = Activator.CreateInstance(type, true) as CustomRole;
-                    if (role.TryRegister())
-                    {
-                        Log.Debug($"Successfully registered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
-                        Registered.Add(role);
-                    }
-                    else
-                        Log.Warn($"Failed to register {role.Name} ({role.Id})");
-                }
-            }
+            var toRegister = Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null);
+            Registered.AddRange(CustomRole.RegisterRoles(toRegister));
+            foreach (var role in Registered)
+                Log.Debug($"Successfully registered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
+
+            if (Registered.Count < toRegister.Count())
+                Log.Warn($"Successfully registered {Registered.Count}/{toRegister.Count()} CustomRoles!");
         }
 
         private void UnRegister()
         {
-            foreach (var role in Registered.ToArray())
+            short unregisteredCount = 0;
+            foreach (var role in CustomRole.UnregisterRoles(Registered))
             {
-                if (role.TryUnregister())
-                {
-                    Log.Debug($"Successfully unregistered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
-                    Registered.Remove(role);
-                }
-                else
-                    Log.Warn($"Failed to unregister {role.Name} ({role.Id})");
+                Log.Debug($"Successfully unregistered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
+                Registered.Remove(role);
+                unregisteredCount++;
             }
+
+            if (Registered.Count > 0)
+                Log.Warn($"Successfully unregistered {Registered.Count}/{unregisteredCount} CustomRoles!");
         }
     }
 }

@@ -66,7 +66,7 @@ namespace Mistaken.API.CustomRoles
                 var prevRole = player.Role;
                 var old = Respawning.RespawnManager.CurrentSequence();
                 Respawning.RespawnManager.Singleton._curSequence = Respawning.RespawnManager.RespawnSequencePhase.SpawningSelectedTeam;
-                player.Role = this.Role == RoleType.None ? RoleType.ClassD : this.Role;
+                player.Role.Type = this.Role == RoleType.None ? RoleType.ClassD : this.Role;
                 player.ReferenceHub.characterClassManager.NetworkCurSpawnableTeamType = 2;
                 player.UnitName = Respawning.RespawnManager.Singleton.NamingManager.AllUnitNames.Last().UnitName;
                 Respawning.RespawnManager.Singleton._curSequence = old;
