@@ -16,6 +16,7 @@ namespace Mistaken.API.CustomRoles
     {
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
+            yield return new CodeInstruction(OpCodes.Ret);
             yield break;
         }
     }

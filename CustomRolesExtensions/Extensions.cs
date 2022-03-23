@@ -7,16 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CommandSystem;
+using System.Reflection;
 using Exiled.API.Features;
-using Exiled.API.Features.Items;
-using Exiled.CustomItems.API.Features;
+using Exiled.API.Features.Attributes;
 using Exiled.CustomRoles.API.Features;
-using Footprinting;
-using InventorySystem.Items.Pickups;
-using InventorySystem.Items.ThrowableProjectiles;
-using Mirror;
-using UnityEngine;
 
 namespace Mistaken.API.CustomRoles
 {
@@ -54,5 +48,26 @@ namespace Mistaken.API.CustomRoles
         /// <inheritdoc cref="MistakenCustomRole.TryGet(MistakenCustomRoles, out MistakenCustomRole)"/>
         public static bool TryGet(this MistakenCustomRoles id, out MistakenCustomRole customRole)
             => MistakenCustomRole.TryGet(id, out customRole);
+
+        /// <inheritdoc cref="CustomRole.RegisterRoles(IEnumerable{Type}, bool)"/>
+        public static IEnumerable<CustomRole> RegisterRoles(IEnumerable<Type> targetTypes)
+        {
+            List<CustomRole> registeredRoles = new List<CustomRole>();
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass))
+            {
+                if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null || !targetTypes.Contains(type))
+                    continue;
+
+                foreach (Attribute attribute in type.GetCustomAttributes(typeof(CustomRoleAttribute), true))
+                {
+                    CustomRole customRole = (CustomRole)Activator.CreateInstance(type);
+                    customRole.Role = ((CustomRoleAttribute)attribute).RoleType;
+                    customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, new object[0]);
+                    registeredRoles.Add(customRole);
+                }
+            }
+
+            return registeredRoles;
+        }
     }
 }

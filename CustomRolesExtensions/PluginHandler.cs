@@ -6,12 +6,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.CustomRoles.API.Features;
+using HarmonyLib;
 
 namespace Mistaken.API.CustomRoles
 {
@@ -36,6 +35,8 @@ namespace Mistaken.API.CustomRoles
         /// <inheritdoc/>
         public override void OnEnabled()
         {
+            this.harmony = new Harmony("com.customrolesextensions.patch");
+            this.harmony.PatchAll();
             base.OnEnabled();
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins += this.CustomEvents_LoadedPlugins;
         }
@@ -43,6 +44,7 @@ namespace Mistaken.API.CustomRoles
         /// <inheritdoc/>
         public override void OnDisabled()
         {
+            this.harmony.UnpatchAll();
             base.OnDisabled();
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins -= this.CustomEvents_LoadedPlugins;
             this.UnRegister();
@@ -50,12 +52,14 @@ namespace Mistaken.API.CustomRoles
 
         private static readonly List<CustomRole> Registered = new List<CustomRole>();
 
+        private Harmony harmony;
+
         private void CustomEvents_LoadedPlugins() => this.Register();
 
         private void Register()
         {
             var toRegister = Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null);
-            Registered.AddRange(CustomRole.RegisterRoles(toRegister));
+            Registered.AddRange(Extensions.RegisterRoles(toRegister));
             foreach (var role in Registered)
                 Log.Debug($"Successfully registered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
 
