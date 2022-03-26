@@ -77,7 +77,9 @@ namespace Mistaken.API.CustomRoles
                     player.Role = prevRole;
             }
 
+            string oldCustomInfo = player.CustomInfo;
             base.AddRole(player);
+            player.CustomInfo = oldCustomInfo;
         }
 
         /// <summary>
