@@ -61,6 +61,31 @@ namespace Mistaken.API.CustomRoles
         /// <inheritdoc/>
         public override string CustomInfo { get; set; }
 
+        /// <summary>
+        /// Gets Keycard permissins for bulitin door permission session var.
+        /// </summary>
+        public virtual KeycardPermissions BuiltInPermissions { get; } = KeycardPermissions.None;
+
+        /// <summary>
+        /// Gets a value indicating whether role grants infinite ammo.
+        /// </summary>
+        public virtual bool InfiniteAmmo { get; } = false;
+
+        /// <summary>
+        /// Gets name used to for GUI.
+        /// </summary>
+        public virtual string DisplayName { get; }
+
+        /// <summary>
+        /// Gets ammo set when role is added.
+        /// </summary>
+        public virtual Dictionary<ItemType, ushort> Ammo { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether after adding role latest unit.
+        /// </summary>
+        public virtual bool SetLatestUnitName { get; } = false;
+
         /// <inheritdoc/>
         public override void AddRole(Player player)
         {
@@ -81,31 +106,6 @@ namespace Mistaken.API.CustomRoles
             base.AddRole(player);
             player.CustomInfo = oldCustomInfo;
         }
-
-        /// <summary>
-        /// Gets Keycard permissins for bulitin door permission session var.
-        /// </summary>
-        protected virtual KeycardPermissions BuiltInPermissions { get; } = KeycardPermissions.None;
-
-        /// <summary>
-        /// Gets a value indicating whether role grants infinite ammo.
-        /// </summary>
-        protected virtual bool InfiniteAmmo { get; } = false;
-
-        /// <summary>
-        /// Gets name used to for GUI.
-        /// </summary>
-        protected virtual string DisplayName { get; }
-
-        /// <summary>
-        /// Gets ammo set when role is added.
-        /// </summary>
-        protected virtual Dictionary<ItemType, ushort> Ammo { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether after adding role latest unit.
-        /// </summary>
-        protected virtual bool SetLatestUnitName { get; } = false;
 
         /// <inheritdoc/>
         protected override void RoleAdded(Player player)
