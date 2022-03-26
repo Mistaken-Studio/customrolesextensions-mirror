@@ -91,7 +91,7 @@ namespace Mistaken.API.CustomRoles
         {
             if (this.SetLatestUnitName)
             {
-                var prevRole = player.Role;
+                var prevRole = player.Role.Type;
                 var old = Respawning.RespawnManager.CurrentSequence();
                 Respawning.RespawnManager.Singleton._curSequence = Respawning.RespawnManager.RespawnSequencePhase.SpawningSelectedTeam;
                 player.Role.Type = this.Role == RoleType.None ? RoleType.ClassD : this.Role;
@@ -99,7 +99,7 @@ namespace Mistaken.API.CustomRoles
                 player.UnitName = Respawning.RespawnManager.Singleton.NamingManager.AllUnitNames.Last().UnitName;
                 Respawning.RespawnManager.Singleton._curSequence = old;
                 if (this.Role == RoleType.None)
-                    player.Role = prevRole;
+                    player.Role.Type = prevRole;
             }
 
             string oldCustomInfo = player.CustomInfo;
