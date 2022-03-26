@@ -59,6 +59,9 @@ namespace Mistaken.API.CustomRoles
         }
 
         /// <inheritdoc/>
+        public override string CustomInfo { get; set; }
+
+        /// <inheritdoc/>
         public override void AddRole(Player player)
         {
             if (this.SetLatestUnitName)

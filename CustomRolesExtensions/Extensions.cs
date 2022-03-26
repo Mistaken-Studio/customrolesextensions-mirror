@@ -69,5 +69,25 @@ namespace Mistaken.API.CustomRoles
 
             return registeredRoles;
         }
+
+        /// <inheritdoc cref="CustomAbility.RegisterAbilities(IEnumerable{Type}, bool)"/>
+        public static IEnumerable<CustomAbility> RegisterAbilities(IEnumerable<Type> targetTypes)
+        {
+            List<CustomAbility> registeredAbilities = new List<CustomAbility>();
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass))
+            {
+                if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null || !targetTypes.Contains(type))
+                    continue;
+
+                foreach (Attribute attribute in type.GetCustomAttributes(typeof(CustomAbilityAttribute), true))
+                {
+                    CustomAbility customAbility = (CustomAbility)Activator.CreateInstance(type);
+                    customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, new object[0]);
+                    registeredAbilities.Add(customAbility);
+                }
+            }
+
+            return registeredAbilities;
+        }
     }
 }

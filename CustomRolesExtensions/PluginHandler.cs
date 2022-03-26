@@ -50,7 +50,9 @@ namespace Mistaken.API.CustomRoles
             this.UnRegister();
         }
 
-        private static readonly List<CustomRole> Registered = new List<CustomRole>();
+        private static readonly List<CustomRole> RegisteredRoles = new List<CustomRole>();
+
+        private static readonly List<CustomAbility> RegisteredAbilities = new List<CustomAbility>();
 
         private Harmony harmony;
 
@@ -58,27 +60,46 @@ namespace Mistaken.API.CustomRoles
 
         private void Register()
         {
-            var toRegister = Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null);
-            Registered.AddRange(Extensions.RegisterRoles(toRegister));
-            foreach (var role in Registered)
+            var toRegisterRoles = Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null);
+            RegisteredRoles.AddRange(Extensions.RegisterRoles(toRegisterRoles));
+            foreach (var role in RegisteredRoles)
                 Log.Debug($"Successfully registered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
 
-            if (Registered.Count < toRegister.Count())
-                Log.Warn($"Successfully registered {Registered.Count}/{toRegister.Count()} CustomRoles!");
+            if (RegisteredRoles.Count < toRegisterRoles.Count())
+                Log.Warn($"Successfully registered {RegisteredRoles.Count}/{toRegisterRoles.Count()} CustomRoles!");
+
+            var toRegisterAbilities = Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility)));
+            RegisteredAbilities.AddRange(Extensions.RegisterAbilities(toRegisterAbilities));
+            foreach (var ability in RegisteredAbilities)
+                Log.Debug($"Successfully registered {ability.Name} ({ability.AbilityType})", this.Config.VerbouseOutput);
+
+            if (RegisteredAbilities.Count < toRegisterAbilities.Count())
+                Log.Warn($"Successfully registered {RegisteredAbilities.Count}/{toRegisterAbilities.Count()} CustomAbilities!");
         }
 
         private void UnRegister()
         {
-            short unregisteredCount = 0;
-            foreach (var role in CustomRole.UnregisterRoles(Registered))
+            short unregisteredRolesCount = 0;
+            foreach (var role in CustomRole.UnregisterRoles(RegisteredRoles))
             {
                 Log.Debug($"Successfully unregistered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
-                Registered.Remove(role);
-                unregisteredCount++;
+                RegisteredRoles.Remove(role);
+                unregisteredRolesCount++;
             }
 
-            if (Registered.Count > 0)
-                Log.Warn($"Successfully unregistered {Registered.Count}/{unregisteredCount} CustomRoles!");
+            if (RegisteredRoles.Count > 0)
+                Log.Warn($"Successfully unregistered {RegisteredRoles.Count}/{unregisteredRolesCount} CustomRoles!");
+
+            short unregisteredAbilitiesCount = 0;
+            foreach (var ability in CustomAbility.UnregisterAbilities(RegisteredAbilities))
+            {
+                Log.Debug($"Successfully unregistered {ability.Name} ({ability.AbilityType})", this.Config.VerbouseOutput);
+                RegisteredAbilities.Remove(ability);
+                unregisteredAbilitiesCount++;
+            }
+
+            if (RegisteredRoles.Count > 0)
+                Log.Warn($"Successfully unregistered {RegisteredAbilities.Count}/{unregisteredAbilitiesCount} CustomAbilities!");
         }
     }
 }
