@@ -49,41 +49,55 @@ namespace Mistaken.API.CustomRoles
         public static bool TryGet(this MistakenCustomRoles id, out MistakenCustomRole customRole)
             => MistakenCustomRole.TryGet(id, out customRole);
 
-        /// <inheritdoc cref="CustomRole.RegisterRoles(IEnumerable{Type}, bool)"/>
-        public static IEnumerable<CustomRole> RegisterRoles(IEnumerable<Type> targetTypes)
+        /// <inheritdoc cref="CustomRole.RegisterRoles(bool, object)"/>
+        public static IEnumerable<CustomRole> RegisterRoles()
         {
             List<CustomRole> registeredRoles = new List<CustomRole>();
-            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass))
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
             {
-                if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null || !targetTypes.Contains(type))
+                if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null)
                     continue;
 
                 foreach (Attribute attribute in type.GetCustomAttributes(typeof(CustomRoleAttribute), true))
                 {
-                    CustomRole customRole = (CustomRole)Activator.CreateInstance(type);
-                    customRole.Role = ((CustomRoleAttribute)attribute).RoleType;
-                    customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, new object[0]);
-                    registeredRoles.Add(customRole);
+                    try
+                    {
+                        CustomRole customRole = (CustomRole)Activator.CreateInstance(type);
+                        customRole.Role = ((CustomRoleAttribute)attribute).RoleType;
+                        customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, new object[0]);
+                        registeredRoles.Add(customRole);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex);
+                    }
                 }
             }
 
             return registeredRoles;
         }
 
-        /// <inheritdoc cref="CustomAbility.RegisterAbilities(IEnumerable{Type}, bool)"/>
-        public static IEnumerable<CustomAbility> RegisterAbilities(IEnumerable<Type> targetTypes)
+        /// <inheritdoc cref="CustomAbility.RegisterAbilities(bool, object)"/>
+        public static IEnumerable<CustomAbility> RegisterAbilities()
         {
             List<CustomAbility> registeredAbilities = new List<CustomAbility>();
-            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass))
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
             {
-                if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null || !targetTypes.Contains(type))
+                if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null)
                     continue;
 
                 foreach (Attribute attribute in type.GetCustomAttributes(typeof(CustomAbilityAttribute), true))
                 {
-                    CustomAbility customAbility = (CustomAbility)Activator.CreateInstance(type);
-                    customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, new object[0]);
-                    registeredAbilities.Add(customAbility);
+                    try
+                    {
+                        CustomAbility customAbility = (CustomAbility)Activator.CreateInstance(type);
+                        customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, new object[0]);
+                        registeredAbilities.Add(customAbility);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex);
+                    }
                 }
             }
 
