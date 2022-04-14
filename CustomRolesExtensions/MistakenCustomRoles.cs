@@ -27,7 +27,7 @@ namespace Mistaken.API.CustomRoles
         /// <plugin>CustomMTF</plugin>
         MTF_CONTAINMENT_ENGINNER,
 
-        /// <plugin>CustomMTF</plugin>
+        /// <plugin>CustomMTF</plugin>m
         GUARD_COMMANDER,
 
         /// <plugin>Tau-5</plugin>

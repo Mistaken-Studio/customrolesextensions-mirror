@@ -58,27 +58,27 @@ namespace Mistaken.API.CustomRoles
 
         private void Register()
         {
-            RegisteredRoles.AddRange(Extensions.RegisterRoles());
-            foreach (var role in RegisteredRoles)
-                Log.Debug($"Successfully registered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
-
             RegisteredAbilities.AddRange(Extensions.RegisterAbilities());
             foreach (var ability in RegisteredAbilities)
                 Log.Debug($"Successfully registered {ability.Name} ({ability.AbilityType})", this.Config.VerbouseOutput);
+
+            RegisteredRoles.AddRange(Extensions.RegisterRoles());
+            foreach (var role in RegisteredRoles)
+                Log.Debug($"Successfully registered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
         }
 
         private void UnRegister()
         {
-            foreach (var role in CustomRole.UnregisterRoles(RegisteredRoles))
-            {
-                Log.Debug($"Successfully unregistered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
-                RegisteredRoles.Remove(role);
-            }
-
             foreach (var ability in CustomAbility.UnregisterAbilities(RegisteredAbilities))
             {
                 Log.Debug($"Successfully unregistered {ability.Name} ({ability.AbilityType})", this.Config.VerbouseOutput);
                 RegisteredAbilities.Remove(ability);
+            }
+
+            foreach (var role in CustomRole.UnregisterRoles(RegisteredRoles))
+            {
+                Log.Debug($"Successfully unregistered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
+                RegisteredRoles.Remove(role);
             }
         }
     }
