@@ -27,7 +27,7 @@ namespace Mistaken.API.CustomRoles
         public override string Prefix => "MCRolesExtensions";
 
         /// <inheritdoc/>
-        public override PluginPriority Priority => PluginPriority.Default;
+        public override PluginPriority Priority => PluginPriority.Default + 1;
 
         /// <inheritdoc/>
         public override Version RequiredExiledVersion => new Version(5, 0, 0);
