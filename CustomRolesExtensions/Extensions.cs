@@ -7,16 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CommandSystem;
+using System.Reflection;
 using Exiled.API.Features;
-using Exiled.API.Features.Items;
-using Exiled.CustomItems.API.Features;
+using Exiled.API.Features.Attributes;
 using Exiled.CustomRoles.API.Features;
-using Footprinting;
-using InventorySystem.Items.Pickups;
-using InventorySystem.Items.ThrowableProjectiles;
-using Mirror;
-using UnityEngine;
 
 namespace Mistaken.API.CustomRoles
 {
@@ -54,5 +48,60 @@ namespace Mistaken.API.CustomRoles
         /// <inheritdoc cref="MistakenCustomRole.TryGet(MistakenCustomRoles, out MistakenCustomRole)"/>
         public static bool TryGet(this MistakenCustomRoles id, out MistakenCustomRole customRole)
             => MistakenCustomRole.TryGet(id, out customRole);
+
+        /// <inheritdoc cref="CustomRole.RegisterRoles(bool, object)"/>
+        public static IEnumerable<CustomRole> RegisterRoles()
+        {
+            List<CustomRole> registeredRoles = new List<CustomRole>();
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
+            {
+                if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null)
+                    continue;
+
+                foreach (Attribute attribute in type.GetCustomAttributes(typeof(CustomRoleAttribute), true))
+                {
+                    try
+                    {
+                        CustomRole customRole = (CustomRole)Activator.CreateInstance(type);
+                        customRole.Role = ((CustomRoleAttribute)attribute).RoleType;
+                        customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, new object[0]);
+                        registeredRoles.Add(customRole);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex);
+                    }
+                }
+            }
+
+            return registeredRoles;
+        }
+
+        /// <inheritdoc cref="CustomAbility.RegisterAbilities(bool, object)"/>
+        public static IEnumerable<CustomAbility> RegisterAbilities()
+        {
+            List<CustomAbility> registeredAbilities = new List<CustomAbility>();
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
+            {
+                if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null)
+                    continue;
+
+                foreach (Attribute attribute in type.GetCustomAttributes(typeof(CustomAbilityAttribute), true))
+                {
+                    try
+                    {
+                        CustomAbility customAbility = (CustomAbility)Activator.CreateInstance(type);
+                        customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, new object[0]);
+                        registeredAbilities.Add(customAbility);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex);
+                    }
+                }
+            }
+
+            return registeredAbilities;
+        }
     }
 }

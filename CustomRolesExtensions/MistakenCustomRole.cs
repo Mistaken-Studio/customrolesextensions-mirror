@@ -59,48 +59,53 @@ namespace Mistaken.API.CustomRoles
         }
 
         /// <inheritdoc/>
-        public override void AddRole(Player player)
-        {
-            if (this.SetLatestUnitName)
-            {
-                var prevRole = player.Role;
-                var old = Respawning.RespawnManager.CurrentSequence();
-                Respawning.RespawnManager.Singleton._curSequence = Respawning.RespawnManager.RespawnSequencePhase.SpawningSelectedTeam;
-                player.Role = this.Role == RoleType.None ? RoleType.ClassD : this.Role;
-                player.ReferenceHub.characterClassManager.NetworkCurSpawnableTeamType = 2;
-                player.UnitName = Respawning.RespawnManager.Singleton.NamingManager.AllUnitNames.Last().UnitName;
-                Respawning.RespawnManager.Singleton._curSequence = old;
-                if (this.Role == RoleType.None)
-                    player.Role = prevRole;
-            }
-
-            base.AddRole(player);
-        }
+        public override string CustomInfo { get; set; }
 
         /// <summary>
         /// Gets Keycard permissins for bulitin door permission session var.
         /// </summary>
-        protected virtual KeycardPermissions BuiltInPermissions { get; } = KeycardPermissions.None;
+        public virtual KeycardPermissions BuiltInPermissions { get; } = KeycardPermissions.None;
 
         /// <summary>
         /// Gets a value indicating whether role grants infinite ammo.
         /// </summary>
-        protected virtual bool InfiniteAmmo { get; } = false;
+        public virtual bool InfiniteAmmo { get; } = false;
 
         /// <summary>
         /// Gets name used to for GUI.
         /// </summary>
-        protected virtual string DisplayName { get; }
+        public virtual string DisplayName { get; }
 
         /// <summary>
         /// Gets ammo set when role is added.
         /// </summary>
-        protected virtual Dictionary<ItemType, ushort> Ammo { get; }
+        public virtual Dictionary<ItemType, ushort> Ammo { get; }
 
         /// <summary>
         /// Gets a value indicating whether after adding role latest unit.
         /// </summary>
-        protected virtual bool SetLatestUnitName { get; } = false;
+        public virtual bool SetLatestUnitName { get; } = false;
+
+        /// <inheritdoc/>
+        public override void AddRole(Player player)
+        {
+            if (this.SetLatestUnitName)
+            {
+                var prevRole = player.Role.Type;
+                var old = Respawning.RespawnManager.CurrentSequence();
+                Respawning.RespawnManager.Singleton._curSequence = Respawning.RespawnManager.RespawnSequencePhase.SpawningSelectedTeam;
+                player.Role.Type = this.Role == RoleType.None ? RoleType.ClassD : this.Role;
+                player.ReferenceHub.characterClassManager.NetworkCurSpawnableTeamType = 2;
+                player.UnitName = Respawning.RespawnManager.Singleton.NamingManager.AllUnitNames.Last().UnitName;
+                Respawning.RespawnManager.Singleton._curSequence = old;
+                if (this.Role == RoleType.None)
+                    player.Role.Type = prevRole;
+            }
+
+            string oldCustomInfo = player.CustomInfo;
+            base.AddRole(player);
+            player.CustomInfo = oldCustomInfo;
+        }
 
         /// <inheritdoc/>
         protected override void RoleAdded(Player player)
