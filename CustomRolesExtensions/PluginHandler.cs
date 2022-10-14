@@ -89,7 +89,7 @@ namespace Mistaken.API.CustomRoles
         private IEnumerable<CustomRole> RegisterRoles()
         {
             List<CustomRole> registeredRoles = new();
-            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled && x.Assembly != this.Assembly).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
             {
                 if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null)
                     continue;
@@ -100,7 +100,16 @@ namespace Mistaken.API.CustomRoles
                     {
                         CustomRole customRole = (CustomRole)Activator.CreateInstance(type);
                         customRole.Role = ((CustomRoleAttribute)attribute).RoleType;
-                        customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, null);
+                        try
+                        {
+                            customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, null);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error("CustomRole");
+                            Log.Error(ex);
+                        }
+
                         registeredRoles.Add(customRole);
                     }
                     catch (Exception ex)
@@ -116,7 +125,7 @@ namespace Mistaken.API.CustomRoles
         private IEnumerable<CustomAbility> RegisterAbilities()
         {
             List<CustomAbility> registeredAbilities = new();
-            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled && x.Assembly != this.Assembly).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
             {
                 if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null)
                     continue;
@@ -126,7 +135,16 @@ namespace Mistaken.API.CustomRoles
                     try
                     {
                         CustomAbility customAbility = (CustomAbility)Activator.CreateInstance(type);
-                        customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, null);
+                        try
+                        {
+                            customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, null);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error("CustomAbility");
+                            Log.Error(ex);
+                        }
+
                         registeredAbilities.Add(customAbility);
                     }
                     catch (Exception ex)
