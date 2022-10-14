@@ -39,19 +39,19 @@ namespace Mistaken.API.CustomRoles
         {
             _harmony.PatchAll();
 
-            base.OnEnabled();
-
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins += this.Register;
+
+            base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
             _harmony.UnpatchAll();
 
-            base.OnDisabled();
-
             this.UnRegister();
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins -= this.Register;
+
+            base.OnDisabled();
         }
 
         private static readonly List<CustomRole> _registeredRoles = new();
@@ -89,7 +89,7 @@ namespace Mistaken.API.CustomRoles
         private IEnumerable<CustomRole> RegisterRoles()
         {
             List<CustomRole> registeredRoles = new();
-            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled && x.Assembly != this.Assembly).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
             {
                 if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null)
                     continue;
@@ -116,7 +116,7 @@ namespace Mistaken.API.CustomRoles
         private IEnumerable<CustomAbility> RegisterAbilities()
         {
             List<CustomAbility> registeredAbilities = new();
-            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled && x.Assembly != this.Assembly).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
             {
                 if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null)
                     continue;
