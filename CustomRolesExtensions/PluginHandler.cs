@@ -13,6 +13,7 @@ using Exiled.API.Features;
 using Exiled.API.Features.Attributes;
 using Exiled.CustomRoles.API.Features;
 using HarmonyLib;
+using Mistaken.API.Extensions;
 using Mistaken.Updater.API.Config;
 
 namespace Mistaken.API.CustomRoles
@@ -62,36 +63,6 @@ namespace Mistaken.API.CustomRoles
 
         private void Register()
         {
-            foreach (var plugin in Exiled.Loader.Loader.Plugins)
-            {
-                Type[] types = new Type[0];
-                Log.Debug(plugin.Name);
-                try
-                {
-                    types = plugin.Assembly.GetTypes();
-                }
-                catch (Exception ex)
-                {
-                    Log.Debug(1);
-                    Log.Debug(ex);
-                    break;
-                }
-
-                foreach (var type in types)
-                {
-                    try
-                    {
-                        Log.Debug(type.IsSubclassOf(typeof(CustomRole)) + " Name: " + type.FullName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Debug(2);
-                        Log.Debug(ex);
-                        break;
-                    }
-                }
-            }
-
             _registeredAbilities.AddRange(this.RegisterAbilities());
             foreach (var ability in _registeredAbilities)
                 Log.Debug($"Successfully registered {ability.Name} ({ability.AbilityType})", this.Config.VerboseOutput);
@@ -119,11 +90,8 @@ namespace Mistaken.API.CustomRoles
         private IEnumerable<CustomRole> RegisterRoles()
         {
             List<CustomRole> registeredRoles = new();
-            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetLoadableTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
             {
-                if (type is null)
-                    continue;
-
                 if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null)
                     continue;
 
@@ -149,11 +117,8 @@ namespace Mistaken.API.CustomRoles
         private IEnumerable<CustomAbility> RegisterAbilities()
         {
             List<CustomAbility> registeredAbilities = new();
-            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetLoadableTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
             {
-                if (type is null)
-                    continue;
-
                 if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null)
                     continue;
 
