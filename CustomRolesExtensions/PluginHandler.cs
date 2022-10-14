@@ -7,79 +7,136 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Exiled.API.Enums;
 using Exiled.API.Features;
+using Exiled.API.Features.Attributes;
 using Exiled.CustomRoles.API.Features;
 using HarmonyLib;
+using Mistaken.Updater.API.Config;
 
 namespace Mistaken.API.CustomRoles
 {
-    /// <inheritdoc/>
-    public class PluginHandler : Plugin<Config>
+    internal sealed class PluginHandler : Plugin<Config>, IAutoUpdateablePlugin
     {
-        /// <inheritdoc/>
         public override string Author => "Mistaken Devs";
 
-        /// <inheritdoc/>
         public override string Name => "CustomRolesExtensions";
 
-        /// <inheritdoc/>
         public override string Prefix => "MCRolesExtensions";
 
-        /// <inheritdoc/>
         public override PluginPriority Priority => PluginPriority.Default + 1;
 
-        /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(5, 0, 0);
+        public override Version RequiredExiledVersion => new(5, 2, 2);
 
-        /// <inheritdoc/>
+        public AutoUpdateConfig AutoUpdateConfig => new()
+        {
+            Type = SourceType.GITLAB,
+            Url = "https://git.mistaken.pl/api/v4/projects/69",
+        };
+
         public override void OnEnabled()
         {
-            this.harmony = new Harmony("com.customrolesextensions.patch");
-            this.harmony.PatchAll();
-            base.OnEnabled();
+            _harmony.PatchAll();
+
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins += this.Register;
+
+            base.OnEnabled();
         }
 
-        /// <inheritdoc/>
         public override void OnDisabled()
         {
-            this.harmony.UnpatchAll();
-            base.OnDisabled();
+            _harmony.UnpatchAll();
+
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins -= this.Register;
             this.UnRegister();
+
+            base.OnDisabled();
         }
 
-        private static readonly List<CustomRole> RegisteredRoles = new List<CustomRole>();
+        private static readonly List<CustomRole> _registeredRoles = new();
 
-        private static readonly List<CustomAbility> RegisteredAbilities = new List<CustomAbility>();
+        private static readonly List<CustomAbility> _registeredAbilities = new();
 
-        private Harmony harmony;
+        private static readonly Harmony _harmony = new("com.customrolesextensions.patch");
 
         private void Register()
         {
-            RegisteredAbilities.AddRange(Extensions.RegisterAbilities());
-            foreach (var ability in RegisteredAbilities)
-                Log.Debug($"Successfully registered {ability.Name} ({ability.AbilityType})", this.Config.VerbouseOutput);
+            _registeredAbilities.AddRange(this.RegisterAbilities());
+            foreach (var ability in _registeredAbilities)
+                Log.Debug($"Successfully registered {ability.Name} ({ability.AbilityType})", this.Config.VerboseOutput);
 
-            RegisteredRoles.AddRange(Extensions.RegisterRoles());
-            foreach (var role in RegisteredRoles)
-                Log.Debug($"Successfully registered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
+            _registeredRoles.AddRange(this.RegisterRoles());
+            foreach (var role in _registeredRoles)
+                Log.Debug($"Successfully registered {role.Name} ({role.Id})", this.Config.VerboseOutput);
         }
 
         private void UnRegister()
         {
-            foreach (var ability in CustomAbility.UnregisterAbilities(RegisteredAbilities))
+            foreach (var ability in CustomAbility.UnregisterAbilities(_registeredAbilities))
             {
-                Log.Debug($"Successfully unregistered {ability.Name} ({ability.AbilityType})", this.Config.VerbouseOutput);
-                RegisteredAbilities.Remove(ability);
+                Log.Debug($"Successfully unregistered {ability.Name} ({ability.AbilityType})", this.Config.VerboseOutput);
+                _registeredAbilities.Remove(ability);
             }
 
-            foreach (var role in CustomRole.UnregisterRoles(RegisteredRoles))
+            foreach (var role in CustomRole.UnregisterRoles(_registeredRoles))
             {
-                Log.Debug($"Successfully unregistered {role.Name} ({role.Id})", this.Config.VerbouseOutput);
-                RegisteredRoles.Remove(role);
+                Log.Debug($"Successfully unregistered {role.Name} ({role.Id})", this.Config.VerboseOutput);
+                _registeredRoles.Remove(role);
             }
+        }
+
+        private IEnumerable<CustomRole> RegisterRoles()
+        {
+            List<CustomRole> registeredRoles = new();
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
+            {
+                if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null)
+                    continue;
+
+                foreach (var attribute in (Attribute[])type.GetCustomAttributes(typeof(CustomRoleAttribute), true))
+                {
+                    try
+                    {
+                        CustomRole customRole = (CustomRole)Activator.CreateInstance(type);
+                        customRole.Role = ((CustomRoleAttribute)attribute).RoleType;
+                        customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, null);
+                        registeredRoles.Add(customRole);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex);
+                    }
+                }
+            }
+
+            return registeredRoles;
+        }
+
+        private IEnumerable<CustomAbility> RegisterAbilities()
+        {
+            List<CustomAbility> registeredAbilities = new();
+            foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
+            {
+                if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null)
+                    continue;
+
+                foreach (var attribute in (Attribute[])type.GetCustomAttributes(typeof(CustomAbilityAttribute), true))
+                {
+                    try
+                    {
+                        CustomAbility customAbility = (CustomAbility)Activator.CreateInstance(type);
+                        customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, null);
+                        registeredAbilities.Add(customAbility);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex);
+                    }
+                }
+            }
+
+            return registeredAbilities;
         }
     }
 }

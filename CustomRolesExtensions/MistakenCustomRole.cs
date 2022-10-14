@@ -33,6 +33,7 @@ namespace Mistaken.API.CustomRoles
             customRole = null;
             if (!TryGet((int)id, out var customRole2))
                 return false;
+
             customRole = customRole2 as MistakenCustomRole;
             return true;
         }
@@ -44,6 +45,7 @@ namespace Mistaken.API.CustomRoles
             customRole = null;
             if (!TryGet((int)id, out var customRole2))
                 return false;
+
             customRole = customRole2 as T;
             return true;
         }
@@ -79,7 +81,7 @@ namespace Mistaken.API.CustomRoles
         /// <summary>
         /// Gets ammo set when role is added.
         /// </summary>
-        public virtual Dictionary<ItemType, ushort> Ammo { get; }
+        public virtual new Dictionary<ItemType, ushort> Ammo { get; }
 
         /// <summary>
         /// Gets a value indicating whether after adding role latest unit.
@@ -114,6 +116,7 @@ namespace Mistaken.API.CustomRoles
             player.InfoArea = ~PlayerInfoArea.Role;
             if (this.BuiltInPermissions != KeycardPermissions.None)
                 player.SetSessionVariable(SessionVarType.BUILTIN_DOOR_ACCESS, this.BuiltInPermissions);
+
             if (this.InfiniteAmmo)
             {
                 player.SetSessionVariable(SessionVarType.INFINITE_AMMO, true);
@@ -149,7 +152,7 @@ namespace Mistaken.API.CustomRoles
 
             if (!string.IsNullOrWhiteSpace(this.DisplayName))
             {
-                Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", this.DisplayName);
+                Mistaken.API.Handlers.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", this.DisplayName);
                 player.SetGUI($"custom-role-{this.Name}", GUI.PseudoGUIPosition.BOTTOM, $"<color=yellow>Grasz</color> jako {this.DisplayName}");
                 player.SetGUI($"custom-role-{this.Name}-descripton", GUI.PseudoGUIPosition.MIDDLE, this.Description, 15f);
             }
@@ -167,10 +170,11 @@ namespace Mistaken.API.CustomRoles
 
             if (this.BuiltInPermissions != KeycardPermissions.None)
                 player.RemoveSessionVariable(SessionVarType.BUILTIN_DOOR_ACCESS);
+
             if (this.InfiniteAmmo)
                 player.RemoveSessionVariable(SessionVarType.INFINITE_AMMO);
 
-            Mistaken.API.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", null);
+            Mistaken.API.Handlers.CustomInfoHandler.Set(player, $"custom-role-{this.Name}", null);
             player.SetGUI($"custom-role-{this.Name}", GUI.PseudoGUIPosition.BOTTOM, null);
             RLogger.Log("CUSTOM CLASSES", this.Name, $"{player.PlayerToString()} is no longer {this.Name}");
         }
