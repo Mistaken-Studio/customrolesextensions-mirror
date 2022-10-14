@@ -39,8 +39,33 @@ namespace Mistaken.API.CustomRoles
         {
             _harmony.PatchAll();
 
-            foreach (var type in Exiled.Loader.Loader.Plugins.First(x => x.Name == "PrivateSystems").Assembly.GetTypes())
-                Log.Debug(type.IsSubclassOf(typeof(CustomRole)) + " Name: " + type.FullName);
+            foreach (var plugin in Exiled.Loader.Loader.Plugins)
+            {
+                Type[] types = new Type[0];
+                Log.Debug(plugin.Name);
+                try
+                {
+                    types = plugin.Assembly.GetTypes();
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug(1);
+                    Log.Debug(ex);
+                }
+
+                foreach (var type in types)
+                {
+                    try
+                    {
+                        Log.Debug(type.IsSubclassOf(typeof(CustomRole)) + " Name: " + type.FullName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Debug(2);
+                        Log.Debug(ex);
+                    }
+                }
+            }
 
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins += this.Register;
 
