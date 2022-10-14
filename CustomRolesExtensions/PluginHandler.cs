@@ -40,7 +40,7 @@ namespace Mistaken.API.CustomRoles
             _harmony.PatchAll();
 
             foreach (var type in Exiled.Loader.Loader.Plugins.First(x => x.Name == "PrivateSystems").Assembly.GetTypes())
-                Log.Debug(type.FullName);
+                Log.Debug(type.IsSubclassOf(typeof(CustomRole)) + " Name: " + type.FullName);
 
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins += this.Register;
 
