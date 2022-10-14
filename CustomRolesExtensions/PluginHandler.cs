@@ -39,19 +39,19 @@ namespace Mistaken.API.CustomRoles
         {
             _harmony.PatchAll();
 
-            Mistaken.Events.Handlers.CustomEvents.LoadedPlugins += this.Register;
-
             base.OnEnabled();
+
+            Mistaken.Events.Handlers.CustomEvents.LoadedPlugins += this.Register;
         }
 
         public override void OnDisabled()
         {
             _harmony.UnpatchAll();
 
-            Mistaken.Events.Handlers.CustomEvents.LoadedPlugins -= this.Register;
-            this.UnRegister();
-
             base.OnDisabled();
+
+            this.UnRegister();
+            Mistaken.Events.Handlers.CustomEvents.LoadedPlugins -= this.Register;
         }
 
         private static readonly List<CustomRole> _registeredRoles = new();
