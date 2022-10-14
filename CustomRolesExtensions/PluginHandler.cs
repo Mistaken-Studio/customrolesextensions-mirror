@@ -91,25 +91,19 @@ namespace Mistaken.API.CustomRoles
             List<CustomRole> registeredRoles = new();
             foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.GetInterface(nameof(IMistakenCustomRole)) != null))
             {
+                if (type is null)
+                    continue;
+
                 if (!type.IsSubclassOf(typeof(CustomRole)) || type.GetCustomAttribute(typeof(CustomRoleAttribute)) is null)
                     continue;
 
-                foreach (Attribute attribute in type.GetCustomAttributes(typeof(CustomRoleAttribute), true))
+                foreach (var attribute in (Attribute[])type.GetCustomAttributes(typeof(CustomRoleAttribute), true))
                 {
                     try
                     {
                         CustomRole customRole = (CustomRole)Activator.CreateInstance(type);
                         customRole.Role = ((CustomRoleAttribute)attribute).RoleType;
-                        try
-                        {
-                            customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, null);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error("CustomRole");
-                            Log.Error(ex);
-                        }
-
+                        customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, null);
                         registeredRoles.Add(customRole);
                     }
                     catch (Exception ex)
@@ -127,24 +121,18 @@ namespace Mistaken.API.CustomRoles
             List<CustomAbility> registeredAbilities = new();
             foreach (Type type in Exiled.Loader.Loader.Plugins.Where(x => x.Config.IsEnabled).SelectMany(x => x.Assembly.GetTypes()).Where(x => !x.IsAbstract && x.IsClass).Where(x => x.IsSubclassOf(typeof(CustomAbility))))
             {
+                if (type is null)
+                    continue;
+
                 if (!type.IsSubclassOf(typeof(CustomAbility)) || type.GetCustomAttribute(typeof(CustomAbilityAttribute)) is null)
                     continue;
 
-                foreach (Attribute attribute in type.GetCustomAttributes(typeof(CustomAbilityAttribute), true))
+                foreach (var attribute in (Attribute[])type.GetCustomAttributes(typeof(CustomAbilityAttribute), true))
                 {
                     try
                     {
                         CustomAbility customAbility = (CustomAbility)Activator.CreateInstance(type);
-                        try
-                        {
-                            customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, null);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error("CustomAbility");
-                            Log.Error(ex);
-                        }
-
+                        customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, null);
                         registeredAbilities.Add(customAbility);
                     }
                     catch (Exception ex)
