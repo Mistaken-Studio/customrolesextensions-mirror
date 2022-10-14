@@ -100,7 +100,7 @@ namespace Mistaken.API.CustomRoles
                     {
                         CustomRole customRole = (CustomRole)Activator.CreateInstance(type);
                         customRole.Role = ((CustomRoleAttribute)attribute).RoleType;
-                        customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, null);
+                        customRole.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customRole, new object[0]);
                         registeredRoles.Add(customRole);
                     }
                     catch (Exception ex)
@@ -126,7 +126,7 @@ namespace Mistaken.API.CustomRoles
                     try
                     {
                         CustomAbility customAbility = (CustomAbility)Activator.CreateInstance(type);
-                        customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, null);
+                        customAbility.GetType().GetMethod("TryRegister", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(customAbility, new object[0]);
                         registeredAbilities.Add(customAbility);
                     }
                     catch (Exception ex)
