@@ -39,34 +39,6 @@ namespace Mistaken.API.CustomRoles
         {
             _harmony.PatchAll();
 
-            foreach (var plugin in Exiled.Loader.Loader.Plugins)
-            {
-                Type[] types = new Type[0];
-                Log.Debug(plugin.Name);
-                try
-                {
-                    types = plugin.Assembly.GetTypes();
-                }
-                catch (Exception ex)
-                {
-                    Log.Debug(1);
-                    Log.Debug(ex);
-                }
-
-                foreach (var type in types)
-                {
-                    try
-                    {
-                        Log.Debug(type.IsSubclassOf(typeof(CustomRole)) + " Name: " + type.FullName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Debug(2);
-                        Log.Debug(ex);
-                    }
-                }
-            }
-
             Mistaken.Events.Handlers.CustomEvents.LoadedPlugins += this.Register;
 
             base.OnEnabled();
@@ -90,6 +62,36 @@ namespace Mistaken.API.CustomRoles
 
         private void Register()
         {
+            foreach (var plugin in Exiled.Loader.Loader.Plugins)
+            {
+                Type[] types = new Type[0];
+                Log.Debug(plugin.Name);
+                try
+                {
+                    types = plugin.Assembly.GetTypes();
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug(1);
+                    Log.Debug(ex);
+                    break;
+                }
+
+                foreach (var type in types)
+                {
+                    try
+                    {
+                        Log.Debug(type.IsSubclassOf(typeof(CustomRole)) + " Name: " + type.FullName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Debug(2);
+                        Log.Debug(ex);
+                        break;
+                    }
+                }
+            }
+
             _registeredAbilities.AddRange(this.RegisterAbilities());
             foreach (var ability in _registeredAbilities)
                 Log.Debug($"Successfully registered {ability.Name} ({ability.AbilityType})", this.Config.VerboseOutput);
